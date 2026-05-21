@@ -22,6 +22,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.noelmateo.SagipBayan",
+      "googleServicesFile": "./google-services.json",
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyCDgFTzumoSMSpmiJdCJtNouKrRJ3KNvfk"
