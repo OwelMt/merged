@@ -1,0 +1,209 @@
+/* Kill any layout-induced page scroll */
+html, body, #root { height: 100%; margin: 0; }
+
+/* Clamp app to viewport; no document scroll */
+.tio-app {
+  height: 100dvh;           /* modern vh */
+  width: 100%;
+  overflow: hidden;         /* prevent page scroll */
+  display: flex;
+  flex-direction: column;
+  background: #f3f4f6;
+  color: #0f172a;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  /* defaults; JS overwrites with precise values */
+  --app-header-h: 0px;
+  --tio-toolbar-h: 48px;
+  --tio-main-vpad: 24px;    /* .tio-main vertical padding total */
+}
+
+/* Sticky dark toolbar */
+.tio-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #015203;
+  color: #e5e7eb;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #1f2937;
+}
+.tio-toolbar-left { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.tio-title { font-size: 16px; font-weight: 800; margin: 0; color: #fff; }
+.tio-meta  { font-size: 12px; color: #9ca3af; }
+.tio-toolbar-right { display: flex; align-items: center; gap: 8px; }
+
+.tio-select,
+.tio-input {
+  height: 32px;
+  padding: 0 10px;
+  font-size: 13px;
+  color: #e5e7eb;
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  outline: none;
+}
+.tio-select:focus, .tio-input:focus { box-shadow: 0 0 0 2px rgba(59,130,246,.35); }
+.tio-input::-webkit-calendar-picker-indicator { filter: invert(0.8); }
+
+/* Main (no scroll) */
+.tio-main {
+  flex: 1 0 auto;
+  min-height: 0;
+  padding: 12px 14px;
+}
+
+/* Region height = viewport minus header, toolbar, main padding */
+.tio-table-region {
+  height: calc(100dvh - var(--app-header-h) - var(--tio-toolbar-h) - var(--tio-main-vpad));
+  display: grid;
+  grid-template-rows: 1fr auto;   /* table area + pagination */
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(16,24,40,0.06);
+  overflow: hidden;               /* panel contains its own scroll child */
+}
+
+/* ⬇️ The ONLY scrollable area */
+.tio-table-wrap {
+  min-height: 0;
+  overflow: auto;                 /* make the panel scrollable */
+  -webkit-overflow-scrolling: touch;
+  position: relative;             /* for sticky thead inside */
+}
+
+/* Table */
+.tio-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.tio-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  text-align: left;
+  background: #f8fafc;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 10px 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Probe row: same paddings/borders as real rows, but hidden */
+.tio-probe-row { visibility: hidden; }
+.tio-probe-row td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* Body rows */
+.tio-table tbody td {
+  border-bottom: 1px solid #f1f5f9;
+  padding: 10px 12px;
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tio-table tbody tr:hover td { background: #f8fafc; }
+
+/* Status pills */
+.tio-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+.tio-online  { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+.tio-offline { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+
+/* Empty state row */
+.tio-empty-row td { padding: 24px 12px; background: #ffffff; }
+.tio-empty-inline {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+}
+.tio-empty-emoji { font-size: 18px; }
+.tio-empty-text  { display: grid; }
+.tio-muted { color: #64748b; font-size: 12.5px; }
+
+/* Pagination — always visible (grid row 2) */
+.tio-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 10px 12px;
+  border-top: 1px solid #e5e7eb;
+  background: #fff;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+.tio-btn {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #0f172a;
+  cursor: pointer;
+  transition: background .15s ease, transform .02s ease, border-color .15s ease;
+}
+.tio-btn:hover  { background: #eef2f7; }
+.tio-btn:active { transform: translateY(1px); }
+.tio-btn:disabled { opacity: .6; cursor: not-allowed; background: #f3f4f6; }
+.tio-page { font-size: 13px; color: #475569; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .tio-toolbar       { grid-template-columns: 1fr; row-gap: 8px; }
+  .tio-toolbar-right { flex-wrap: wrap; gap: 8px; }
+  .tio-table         { font-size: 13px; }
+}
+
+:root[data-theme="dark"] .tio-app {
+  background:
+    radial-gradient(circle at top right, rgba(63, 185, 80, 0.12), transparent 24%),
+    linear-gradient(180deg, #082611 0%, #0c2814 100%) !important;
+}
+
+:root[data-theme="dark"] .tio-toolbar,
+:root[data-theme="dark"] .tio-main,
+:root[data-theme="dark"] .tio-table-region,
+:root[data-theme="dark"] .tio-table-wrap,
+:root[data-theme="dark"] .tio-select,
+:root[data-theme="dark"] .tio-input,
+:root[data-theme="dark"] .tio-empty-row td,
+:root[data-theme="dark"] .tio-pagination,
+:root[data-theme="dark"] .tio-btn {
+  background: linear-gradient(180deg, rgba(19, 49, 27, 0.98) 0%, rgba(23, 58, 32, 0.98) 100%) !important;
+  color: var(--content-text) !important;
+  border-color: rgba(157, 203, 168, 0.18) !important;
+}
+
+:root[data-theme="dark"] .tio-table thead th,
+:root[data-theme="dark"] .tio-table tbody td,
+:root[data-theme="dark"] .tio-page {
+  color: var(--content-text) !important;
+}
+
+:root[data-theme="dark"] .tio-muted,
+:root[data-theme="dark"] .tio-meta {
+  color: var(--text-soft) !important;
+}

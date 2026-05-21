@@ -1,0 +1,53 @@
+{
+  "expo": {
+    "name": "SagipBayan",
+    "slug": "SagipBayan",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/sagipbayanapplogo.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/sagipbayanapplogo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/sagipbayanapplogo.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.noelmateo.SagipBayan",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCDgFTzumoSMSpmiJdCJtNouKrRJ3KNvfk"
+        }
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "defaultChannel": "normal-notifications",
+          "sounds": [
+            "./Notification/notification.mp3",
+            "./Notification/dangernotification.mp3",
+            "./Notification/smsnotification.wav"
+          ]
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "d51f3309-b7d5-4704-9eca-951d7700dbfe"
+      }
+    }
+  }
+}
