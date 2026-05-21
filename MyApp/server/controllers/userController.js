@@ -2303,6 +2303,34 @@ const registerNotificationToken = async (req, res) => {
   }
 };
 
+const logNotificationTokenDebug = async (req, res) => {
+  try {
+    const userId = String(req.params.id || "");
+    const stage = String(req.body?.stage || "unknown").slice(0, 80);
+    const platform = String(req.body?.platform || "").slice(0, 40);
+    const status = String(req.body?.status || "").slice(0, 80);
+    const projectId = String(req.body?.projectId || "").slice(0, 120);
+    const message = String(req.body?.message || "").slice(0, 500);
+
+    console.log("[push-token-debug]", {
+      userId,
+      stage,
+      platform,
+      status,
+      hasProjectId: Boolean(projectId),
+      projectId,
+      message,
+    });
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error("[push-token-debug] failed", {
+      message: err?.message || String(err),
+    });
+    return res.status(500).json({ message: "Failed to log push token debug." });
+  }
+};
+
 module.exports = {
   registerUser,
   verifyEmail,
@@ -2330,4 +2358,5 @@ module.exports = {
   markNotificationsRead,
   clearNotifications,
   registerNotificationToken,
+  logNotificationTokenDebug,
 };

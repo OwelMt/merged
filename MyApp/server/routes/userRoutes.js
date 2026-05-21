@@ -40,6 +40,7 @@ router.put("/location/:id", userController.updateLocation);
 router.patch("/:id/share-safety-location", userController.updateShareSafetyLocation);
 
 router.put("/twofactor/:id", userController.toggleTwoFactor);
+router.post("/:id/notification-token/debug", userController.logNotificationTokenDebug);
 router.post("/:id/notification-token", userController.registerNotificationToken);
 router.get("/:id/notifications", userController.getUserNotifications);
 router.put("/:id/notifications/read-all", userController.markNotificationsRead);

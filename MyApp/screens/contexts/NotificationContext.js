@@ -210,15 +210,40 @@ function getExpoProjectId() {
   );
 }
 
+async function logPushRegistrationDebug(userId, payload = {}) {
+  if (!userId) return;
+
+  try {
+    await api.post(`/user/${userId}/notification-token/debug`, {
+      platform: Platform.OS,
+      ...payload,
+    });
+  } catch (err) {
+    console.log("[push-token-debug] send failed:", err?.message);
+  }
+}
+
 async function registerExpoPushToken(userId) {
   if (!userId || Platform.OS === "web") return null;
+
+  await logPushRegistrationDebug(userId, { stage: "start" });
 
   const currentPermissions = await Notifications.getPermissionsAsync();
   let finalStatus = currentPermissions.status;
 
+  await logPushRegistrationDebug(userId, {
+    stage: "permission-current",
+    status: finalStatus,
+  });
+
   if (finalStatus !== "granted") {
     const requested = await Notifications.requestPermissionsAsync();
     finalStatus = requested.status;
+
+    await logPushRegistrationDebug(userId, {
+      stage: "permission-requested",
+      status: finalStatus,
+    });
   }
 
   if (finalStatus !== "granted") {
@@ -231,15 +256,40 @@ async function registerExpoPushToken(userId) {
   }
 
   const projectId = getExpoProjectId();
-  const tokenResponse = projectId
-    ? await Notifications.getExpoPushTokenAsync({ projectId })
-    : await Notifications.getExpoPushTokenAsync();
+  await logPushRegistrationDebug(userId, {
+    stage: "project-id",
+    projectId,
+  });
+
+  let tokenResponse = null;
+  try {
+    tokenResponse = projectId
+      ? await Notifications.getExpoPushTokenAsync({ projectId })
+      : await Notifications.getExpoPushTokenAsync();
+  } catch (err) {
+    await logPushRegistrationDebug(userId, {
+      stage: "token-error",
+      projectId,
+      message: err?.message || String(err),
+    });
+    throw err;
+  }
   const token = tokenResponse?.data;
 
   if (!token) {
+    await logPushRegistrationDebug(userId, {
+      stage: "token-empty",
+      projectId,
+    });
     console.log("[push-token] no Expo token returned");
     return null;
   }
+
+  await logPushRegistrationDebug(userId, {
+    stage: "token-created",
+    projectId,
+    status: "ok",
+  });
 
   await api.post(`/user/${userId}/notification-token`, {
     token,
