@@ -1,9 +1,11 @@
 const Donation = require("../models/Donation");
 const DonationNeed = require("../models/DonationNeed");
 const InventoryItem = require("../models/InventoryItem");
+const User = require("../models/User");
 const mongoose = require("mongoose");
 const cloudinary = require("../config/cloudinary");
 const createNotification = require("../utils/createNotification");
+const { sendExpoPushNotifications } = require("../utils/sendExpoPushNotifications");
 const {
   hasNormalizedDonationReference,
   normalizeDonationReferenceNumber,
@@ -531,6 +533,9 @@ async function notifyDonationReceiptDecision(donation, req, status) {
       return;
     }
 
+    const title = status === "received" ? "Donation received" : "Donation not received";
+    const message = `${donorLabel} donation was ${decision}.`;
+
     await createNotification({
       recipientRole: "all",
       recipientUser: donorUserId,
@@ -541,8 +546,8 @@ async function notifyDonationReceiptDecision(donation, req, status) {
       module: "donation",
       type: status === "received" ? "donation_received" : "donation_not_received",
       priority: "normal",
-      title: status === "received" ? "Donation received" : "Donation not received",
-      message: `${donorLabel} donation was ${decision}.`,
+      title,
+      message,
       link: "/donations",
       referenceId: donation?._id || null,
       referenceModel: "Donation",
@@ -552,6 +557,18 @@ async function notifyDonationReceiptDecision(donation, req, status) {
         quantity: Number(donation?.quantity || 0),
         donationId: donation?._id || null,
         decision: status,
+      },
+    });
+
+    const donorUser = await User.findById(donorUserId).select("_id notificationTokens").lean();
+    await sendExpoPushNotifications([donorUser], {
+      title,
+      body: message,
+      soundType: "notification",
+      data: {
+        type: status === "received" ? "donation_received" : "donation_not_received",
+        soundType: "notification",
+        donationId: String(donation?._id || ""),
       },
     });
   } catch (err) {

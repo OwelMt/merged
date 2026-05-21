@@ -16,13 +16,13 @@ const DEFAULT_NOTIFICATION_SOUND_SETTINGS = {
 };
 
 export const NOTIFICATION_CHANNELS = {
-  normal: "normal-notifications",
+  normal: "normal-notifications-v2",
   danger: "danger-alerts",
   sms: "sms-notifications",
 };
 
 export const NOTIFICATION_SOUND_FILES = {
-  normal: "notification.mp3",
+  normal: "smsnotification.wav",
   danger: "dangernotification.mp3",
   sms: "smsnotification.wav",
 };
@@ -100,7 +100,7 @@ async function loadSound(kind) {
 
   if (!normalSound) {
     const loaded = await Audio.Sound.createAsync(
-      require("../Notification/notification.mp3")
+      require("../Notification/smsnotification.wav")
     );
     normalSound = loaded.sound;
   }

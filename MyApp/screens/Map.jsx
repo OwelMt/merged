@@ -4202,6 +4202,18 @@ function ModulePanel({
   const inputY = useRef({});
   const fieldFocusTimerRef = useRef(null);
   const formScrollMountedRef = useRef(true);
+  const incidentFocusedFieldRef = useRef(null);
+
+  const focusIncidentField = (key) => {
+    incidentFocusedFieldRef.current = key;
+    scrollToField(key);
+  };
+
+  const blurIncidentField = (key) => {
+    if (incidentFocusedFieldRef.current === key) {
+      incidentFocusedFieldRef.current = null;
+    }
+  };
 
   const getFieldScrollY = (key) => {
     if (key === "street") {
@@ -4366,13 +4378,21 @@ function ModulePanel({
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
       onStartShouldSetPanResponderCapture: () => false,
-      onMoveShouldSetPanResponder: (_, gesture) =>
-        Math.abs(gesture.dy) > PANEL_DRAG_THRESHOLD &&
-        Math.abs(gesture.dy) > Math.abs(gesture.dx) * 1.15,
-      onMoveShouldSetPanResponderCapture: (_, gesture) =>
-        isNavigationPanelActiveRef.current &&
-        Math.abs(gesture.dy) > PANEL_DRAG_CAPTURE_THRESHOLD &&
-        Math.abs(gesture.dy) > Math.abs(gesture.dx) * 1.2,
+      onMoveShouldSetPanResponder: (_, gesture) => {
+        if (incidentFocusedFieldRef.current) return false;
+        return (
+          Math.abs(gesture.dy) > PANEL_DRAG_THRESHOLD &&
+          Math.abs(gesture.dy) > Math.abs(gesture.dx) * 1.15
+        );
+      },
+      onMoveShouldSetPanResponderCapture: (_, gesture) => {
+        if (incidentFocusedFieldRef.current) return false;
+        return (
+          isNavigationPanelActiveRef.current &&
+          Math.abs(gesture.dy) > PANEL_DRAG_CAPTURE_THRESHOLD &&
+          Math.abs(gesture.dy) > Math.abs(gesture.dx) * 1.2
+        );
+      },
 
       onPanResponderGrant: () => {
         translateY.stopAnimation((value) => {
@@ -4623,7 +4643,7 @@ function ModulePanel({
     ref={formScrollRef}
     showsVerticalScrollIndicator={false}
     keyboardShouldPersistTaps="handled"
-    keyboardDismissMode="on-drag"
+    keyboardDismissMode="none"
     stickyHeaderIndices={[0]}
     contentContainerStyle={styles.incidentFormScrollContent}
   >
@@ -4843,7 +4863,8 @@ function ModulePanel({
             style={[styles.input, styles.locationInput]}
             placeholder="House no., street, purok, landmark"
             value={incidentDraft.street}
-            onFocus={() => scrollToField("street")}
+            onFocus={() => focusIncidentField("street")}
+            onBlur={() => blurIncidentField("street")}
             onLayout={(event) => {
               inputY.current.street = event.nativeEvent.layout.y;
             }}
@@ -4889,7 +4910,8 @@ function ModulePanel({
             placeholder="Describe what happened"
             multiline
             value={incidentDraft.description}
-            onFocus={() => scrollToField("description")}
+            onFocus={() => focusIncidentField("description")}
+            onBlur={() => blurIncidentField("description")}
             onLayout={(event) => {
               inputY.current.description = event.nativeEvent.layout.y;
             }}

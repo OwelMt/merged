@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const UserModel = require("../models/User");
 const ConnectionModel = require("../models/Connection");
+const { sendExpoPushNotifications } = require("../utils/sendExpoPushNotifications");
 
 function normalizeConnectionCode(code) {
   return String(code || "")
@@ -90,6 +91,7 @@ async function notifyConnectionMembersSafetyUpdate(user, status, message = "") {
     : baseMessage;
 
   const jobs = [];
+  const recipientIds = new Set();
 
   connections.forEach((connection) => {
     const members = Array.isArray(connection.members) ? connection.members : [];
@@ -100,6 +102,7 @@ async function notifyConnectionMembersSafetyUpdate(user, status, message = "") {
       // Do not notify the same user who marked their own status.
       if (idsMatch(memberId, user._id)) return;
 
+      recipientIds.add(String(memberId));
       jobs.push(
         addNotification(memberId, {
           type: notificationType,
@@ -117,6 +120,25 @@ async function notifyConnectionMembersSafetyUpdate(user, status, message = "") {
   });
 
   await Promise.all(jobs);
+
+  const recipients = await UserModel.find({
+    _id: { $in: [...recipientIds] },
+    "notificationTokens.0": { $exists: true },
+  })
+    .select("_id notificationTokens")
+    .lean();
+
+  await sendExpoPushNotifications(recipients, {
+    title: isSafe ? "Safety update" : "Safety alert",
+    body: notificationMessage,
+    soundType: isSafe ? "notification" : "danger",
+    priority: isSafe ? "default" : "high",
+    data: {
+      type: notificationType,
+      soundType: isSafe ? "notification" : "danger",
+      actorUserId: String(user._id),
+    },
+  });
 }
 
 async function resolveNotificationActionTarget(connectionId, userId) {

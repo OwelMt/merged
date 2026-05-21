@@ -10,12 +10,12 @@ const PUSH_SOUND_CONFIG = {
     channelId: "danger-alerts",
   },
   notification: {
-    sound: "notification.mp3",
-    channelId: "normal-notifications",
+    sound: "smsnotification.wav",
+    channelId: "normal-notifications-v2",
   },
   normal: {
-    sound: "notification.mp3",
-    channelId: "normal-notifications",
+    sound: "smsnotification.wav",
+    channelId: "normal-notifications-v2",
   },
   sms: {
     sound: "smsnotification.wav",
